@@ -9,6 +9,7 @@ Game can be started by simply calling cargo run
 ## Features:
 
 ### Movement/Controls:
+Can be changed in the main menu
 
 -   W/A/S/D: Forwards/Left/Right/Backwards
     
