@@ -1,0 +1,1629 @@
+From 72d4d419062b2f1b879fc6e0ecae6c7ccaefb0fe Mon Sep 17 00:00:00 2001
+From: Zuebot 
+Date: Sat, 31 Oct 2026 15:57:10 +0100
+Subject: [PATCH 01/13] KeyBindingButtton
+
+button added to start menu
+---
+ src/menu/menu_handler.rs | 19 +++++++++++++++----
+ 1 file changed, 15 insertions(+), 4 deletions(-)
+
+diff --git a/src/menu/menu_handler.rs b/src/menu/menu_handler.rs
+index ce1f355..e86dd95 100644
+--- a/src/menu/menu_handler.rs
++++ b/src/menu/menu_handler.rs
+@@ -97,14 +97,14 @@ impl Menu {
+         // Define button layouts
+         let btn_start = ButtonDef {
+             x: 230,
+-            y: 160,
++            y: 140,
+             w: 340,
+             h: 50,
+             text: "[1] NEW GAME".to_string(),
+         };
+         let btn_load = ButtonDef {
+             x: 230,
+-            y: 230,
++            y: 200,
+             w: 340,
+             h: 50,
+             text: "[2] LOAD MAP".to_string(),
+@@ -117,7 +117,7 @@ impl Menu {
+         };
+         let btn_audio = ButtonDef {
+             x: 230,
+-            y: 300,
++            y: 260,
+             w: 340,
+             h: 50,
+             text: audio_text.to_string(),
+@@ -125,11 +125,19 @@ impl Menu {
+ 
+         let btn_quit = ButtonDef {
+             x: 230,
+-            y: 370,
++            y: 320,
+             w: 340,
+             h: 50,
+             text: "[ESC] QUIT GAME".to_string(),
+         };
++         let btn_KeyBindings = ButtonDef {
++            x: 230,
++            y: 380,
++            w: 340,
++            h: 50,
++            text: "[3] Key Bindings".to_string(),
++        };
++
+ 
+         // Interaction processing
+         if self.draw_flat_button(buffer, &btn_start, mx, my) && clicked || click1 {
+@@ -158,6 +166,9 @@ impl Menu {
+         if self.draw_flat_button(buffer, &btn_quit, mx, my) && clicked {
+             return AppState::Quit;
+         }
++        if self.draw_flat_button(buffer, &btn_KeyBindings, mx, my) && clicked || click3 {
++            //Open the key bindings menu or perform related action (this is a placeholder for future implementation) via Config file 
++        }
+ 
+         // Keep looping in the menu until an action changes the state
+         AppState::StartScreen
+-- 
+2.56.0.windows.4
+
+
+From 133a77771bcafd1634f2f6faf45f2e9419a5c36c Mon Sep 17 00:00:00 2001
+From: GregarekT <toagent@web.de>
+Date: Tue, 3 Nov 2026 16:20:35 +0100
+Subject: [PATCH 02/13] blank Keybindings menu
+
+added the keybinding menu and a new keybindings file that is empty
+---
+ src/game/key_bindings.rs |  0
+ src/main.rs              | 13 ++++++++++++
+ src/menu/menu_handler.rs | 46 +++++++++++++++++++++++++++++++++++++---
+ 3 files changed, 56 insertions(+), 3 deletions(-)
+ create mode 100644 src/game/key_bindings.rs
+
+diff --git a/src/game/key_bindings.rs b/src/game/key_bindings.rs
+new file mode 100644
+index 0000000..e69de29
+diff --git a/src/main.rs b/src/main.rs
+index 4778637..025c7c1 100644
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -131,6 +131,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
+             AppState::Quit => {
+                 break;
+             }
++            AppState::KeyBindings => {
++                window.set_cursor_visibility(true);
++
++                if escape_clicked {
++                    app_state = AppState::StartScreen;
++                } else {
++                    app_state = menu.update_and_draw_key_bindings(
++                        &mut window, 
++                        &mut buffer,
++                        
++                    );
++                }
++            }
+         }
+ 
+         if let Err(e) = window.update_with_buffer(&buffer, SCREEN_WIDTH, SCREEN_HEIGHT) {
+diff --git a/src/menu/menu_handler.rs b/src/menu/menu_handler.rs
+index e86dd95..fabc1b6 100644
+--- a/src/menu/menu_handler.rs
++++ b/src/menu/menu_handler.rs
+@@ -31,6 +31,7 @@ pub enum AppState {
+     GameOver,
+     GamePaused,
+     Quit,
++    KeyBindings,
+ }
+ 
+ /// Simple layout container for button definitions.
+@@ -73,6 +74,7 @@ impl Menu {
+         let click1 = window.is_key_pressed(Key::Key1, KeyRepeat::No);
+         let click2 = window.is_key_pressed(Key::Key2, KeyRepeat::No);
+         let click3 = window.is_key_pressed(Key::Key3, KeyRepeat::No);
++        let click4 = window.is_key_pressed(Key::Key4, KeyRepeat::No);
+ 
+         // Render titles
+         Self::draw_text_centered(
+@@ -130,12 +132,12 @@ impl Menu {
+             h: 50,
+             text: "[ESC] QUIT GAME".to_string(),
+         };
+-         let btn_KeyBindings = ButtonDef {
++         let btn_key_bindings = ButtonDef {
+             x: 230,
+             y: 380,
+             w: 340,
+             h: 50,
+-            text: "[3] Key Bindings".to_string(),
++            text: "[4] KEY BINDINGS".to_string(),
+         };
+ 
+ 
+@@ -166,7 +168,8 @@ impl Menu {
+         if self.draw_flat_button(buffer, &btn_quit, mx, my) && clicked {
+             return AppState::Quit;
+         }
+-        if self.draw_flat_button(buffer, &btn_KeyBindings, mx, my) && clicked || click3 {
++        if self.draw_flat_button(buffer, &btn_key_bindings, mx, my) && clicked || click4 {
++            return AppState::KeyBindings;
+             //Open the key bindings menu or perform related action (this is a placeholder for future implementation) via Config file 
+         }
+ 
+@@ -306,6 +309,43 @@ impl Menu {
+ 
+         AppState::GamePaused
+     }
++    pub fn update_and_draw_key_bindings(
++         &mut self,
++         window: &mut Window,
++         buffer: &mut [u32],
++
++    ) -> AppState {
++        buffer.fill(COL_BG_MAIN);
++
++        let (mx, my, clicked) = self.get_mouse_state(window);
++       
++        
++        Self::draw_text_centered(
++            buffer,
++            SCREEN_WIDTH,
++            SCREEN_HEIGHT,
++            "KEY BINDINGS",
++            50,
++            6,
++            COL_TITLE_RED,
++        );
++
++        
++        
++        let btn_back = ButtonDef {
++            x: 230,
++            y: 380,
++            w: 340,
++            h: 50,
++            text: "[ESC] BACK TO MENU".to_string(),
++        };
++
++        if self.draw_flat_button(buffer, &btn_back, mx, my) && clicked {
++            return AppState::StartScreen;
++        }
++
++        AppState::KeyBindings
++    }
+ 
+     /// Fetches mouse coordinates and performs edge detection (debouncing) for left-clicks.
+     fn get_mouse_state(&mut self, window: &Window) -> (usize, usize, bool) {
+-- 
+2.56.0.windows.4
+
+
+From 97c90f31cb3aeda4ac35ecb9228d53bd6ba6e793 Mon Sep 17 00:00:00 2001
+From: GregarekT <toagent@web.de>
+Date: Tue, 3 Nov 2026 16:40:56 +0100
+Subject: [PATCH 03/13] added actions
+
+added actions and named them
+---
+ src/game/key_bindings.rs | 95 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 95 insertions(+)
+
+diff --git a/src/game/key_bindings.rs b/src/game/key_bindings.rs
+index e69de29..ebf2b54 100644
+--- a/src/game/key_bindings.rs
++++ b/src/game/key_bindings.rs
+@@ -0,0 +1,95 @@
++use std::{fs, io};
++
++use minifb::{Key, Window};
++
++const KEY_BINDINGS_FILE: &str = "key_bindings.txt";
++
++#[derive(Clone, Copy, Debug, Eq, PartialEq)]
++#[represent(usize)]
++pub enum Action {
++    MoveForward,
++    MoveBackward,
++    MoveLeft,
++    MoveRight,
++    TurnLeft,
++    TurnRight,
++    AimUp,
++    AimDown,
++    Jump,
++    RocketJump,
++    Sprint,
++    Crouch,
++    Interact,
++    ToggleAim,
++    FireBullet,
++    FireArrow,
++    ToggleGodmode,
++}
++
++impl Action {
++    pub const ALL: [self; 17] = [
++        Self::MoveForward,
++        Self::MoveBackward,
++        Self::MoveLeft,
++        Self::MoveRight,
++        Self::TurnLeft,
++        Self::TurnRight,
++        Self::AimUp,
++        Self::AimDown,
++        Self::Jump,
++        Self::RocketJump,
++        Self::Sprint,
++        Self::Crouch,
++        Self::Interact,
++        Self::ToggleAim,
++        Self::FireBullet,
++        Self::FireArrow,
++        Self::ToggleGodmode,
++    ];
++    pub fn label(self) -> &'static str {
++        match self {
++            Self::MoveForward => "Move Forward",
++            Self::MoveBackward => "Move Backward",
++            Self::MoveLeft => "Move Left",
++            Self::MoveRight => "Move Right",
++            Self::TurnLeft => "Turn Left",
++            Self::TurnRight => "Turn Right",
++            Self::AimUp => "Aim Up",
++            Self::AimDown => "Aim Down",
++            Self::Jump => "Jump",
++            Self::RocketJump => "Rocket Jump",
++            Self::Sprint => "Sprint",
++            Self::Crouch => "Crouch",
++            Self::Interact => "Interact",
++            Self::ToggleAim => "Toggle Aim",
++            Self::FireBullet => "Fire Bullet",
++            Self::FireArrow => "Fire Arrow",
++            Self::ToggleGodmode => "Toggle Godmode",
++        }
++    }
++    fn config_name(self) -> &'static str {
++        match self {
++            Self::MoveForward => "move_forward",
++            Self::MoveBackward => "move_backward",
++            Self::MoveLeft => "move_left",
++            Self::MoveRight => "move_right",
++            Self::TurnLeft => "turn_left",
++            Self::TurnRight => "turn_right",
++            Self::AimUp => "aim_up",
++            Self::AimDown => "aim_down",
++            Self::Jump => "jump",
++            Self::RocketJump => "rocket_jump",
++            Self::Sprint => "sprint",
++            Self::Crouch => "crouch",
++            Self::Interact => "interact",
++            Self::ToggleAim => "toggle_aim",
++            Self::FireBullet => "fire_bullet",
++            Self::FireArrow => "fire_arrow",
++            Self::ToggleGodmode => "toggle_godmode",
++        }
++    }
++    fn from_config_name(name:&str) -> Option<Self> {
++        Self::ALL.iter().find(|&&action| action.config_name() == name)
++    }
++}
++
+-- 
+2.56.0.windows.4
+
+
+From 04b87ccccd201026660a310f9fe87d3944370375 Mon Sep 17 00:00:00 2001
+From: GregarekT <toagent@web.de>
+Date: Tue, 3 Nov 2026 16:45:18 +0100
+Subject: [PATCH 04/13] Added List of all keys
+
+---
+ src/game/key_bindings.rs | 109 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 109 insertions(+)
+
+diff --git a/src/game/key_bindings.rs b/src/game/key_bindings.rs
+index ebf2b54..9f7d964 100644
+--- a/src/game/key_bindings.rs
++++ b/src/game/key_bindings.rs
+@@ -93,3 +93,112 @@ impl Action {
+     }
+ }
+ 
++const ALL_KEYS: &[Keys] = &[
++    Key::Key0,
++    Key::Key1,
++    Key::Key2,
++    Key::Key3,
++    Key::Key4,
++    Key::Key5,
++    Key::Key6,
++    Key::Key7,
++    Key::Key8,
++    Key::Key9,
++    Key::A,
++    Key::B,
++    Key::C,
++    Key::D,
++    Key::E,
++    Key::F,
++    Key::G,
++    Key::H,
++    Key::I,
++    Key::J,
++    Key::K,
++    Key::L,
++    Key::M,
++    Key::N,
++    Key::O,
++    Key::P,
++    Key::Q,
++    Key::R,
++    Key::S,
++    Key::T,
++    Key::U,
++    Key::V,
++    Key::W,
++    Key::X,
++    Key::Y,
++    Key::Z,
++    Key::F1,
++    Key::F2,
++    Key::F3,
++    Key::F4,
++    Key::F5,
++    Key::F6,
++    Key::F7,
++    Key::F8,
++    Key::F9,
++    Key::F10,
++    Key::F11,
++    Key::F12,
++    Key::F13,
++    Key::F14,
++    Key::F15,
++    Key::Down,
++    Key::Left,
++    Key::Right,
++    Key::Up,
++    Key::Apostrophe,
++    Key::Backquote,
++    Key::Backslash,
++    Key::Comma,
++    Key::Equal,
++    Key::LeftBracket,
++    Key::Minus,
++    Key::Period,
++    Key::RightBracket,
++    Key::Semicolon,
++    Key::Slash,
++    Key::Backspace,
++    Key::Delete,
++    Key::End,
++    Key::Enter,
++    Key::Escape,
++    Key::Home,
++    Key::Insert,
++    Key::Menu,
++    Key::PageDown,
++    Key::PageUp,
++    Key::Pause,
++    Key::Space,
++    Key::Tab,
++    Key::NumLock,
++    Key::CapsLock,
++    Key::ScrollLock,
++    Key::LeftShift,
++    Key::RightShift,
++    Key::LeftCtrl,
++    Key::RightCtrl,
++    Key::NumPad0,
++    Key::NumPad1,
++    Key::NumPad2,
++    Key::NumPad3,
++    Key::NumPad4,
++    Key::NumPad5,
++    Key::NumPad6,
++    Key::NumPad7,
++    Key::NumPad8,
++    Key::NumPad9,
++    Key::NumPadDot,
++    Key::NumPadSlash,
++    Key::NumPadAsterisk,
++    Key::NumPadMinus,
++    Key::NumPadPlus,
++    Key::NumPadEnter,
++    Key::LeftAlt,
++    Key::RightAlt,
++    Key::LeftSuper,
++    Key::RightSuper,
++    Key::Unknown,
++];
+-- 
+2.56.0.windows.4
+
+
+From 2f6c83aad6d52fc41915651536ba5369f829d649 Mon Sep 17 00:00:00 2001
+From: GregarekT <toagent@web.de>
+Date: Tue, 3 Nov 2026 18:21:55 +0100
+Subject: [PATCH 05/13] Implemented Keybindings
+
+Save and Load from config
++ check if key is pressed
+---
+ src/game/key_bindings.rs | 58 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 58 insertions(+)
+
+diff --git a/src/game/key_bindings.rs b/src/game/key_bindings.rs
+index 9f7d964..066ff15 100644
+--- a/src/game/key_bindings.rs
++++ b/src/game/key_bindings.rs
+@@ -93,6 +93,64 @@ impl Action {
+     }
+ }
+ 
++
++#[derive(Clone)]
++pub struct KeyBindings {
++    keys: [Key; Action::ALL.len()],
++}
++
++impl KeyBindings {
++    pub fn load() -> Self {
++        let mut bindings = Self::default();
++        match fs::read_to_string(KEY_BINDINGS_FILE) {
++            Ok (contents) => {
++                for (line_number, line) in contents.lines().enumerate() {
++                    let Some((action_name, key_name)) = line.split_once('=') else {
++                        eprintln!(
++                            "Invalid line format in key bindings file at line {KEY_BINDINGS_PATH}: {}",
++                            line_number + 1
++                        );
++                        continue;
++                    };
++                    let action = Action::from_config_name(action_name);
++                    let key = ALL_KEYS.iter().copied.find(|key| format!("{key:?}") == key_name);
++                    match (action, key) {
++                        (Some(action), Some(key)) => bindings.set (action, key), _ => eprintln!(
++                            "Invalid action or key in key bindings file at line {KEY_BINDINGS_PATH}: {}",
++                            line_number + 1
++                        ),
++                        
++                    }
++                }
++            }
++            Err(error) if error.kind() == io::ErrorKind::NotFound => {}
++            Err(error) => eprintln!("Failed to read {KEY_BINDINGS_PATH}: {error}"),
++        }
++        bindings
++    }
++    pub fn get (&self, action: Action) -> Key {
++        self.keys[action as usize]
++    }
++    pub fn set (&mut self, action: Action, key: Key) {
++        self.keys[action as usize] = key;
++    }
++    pub fn is_down(&self, action: Action, window: &Window) -> bool {
++        window.is_key_down(self.get(action))
++    }
++    pub fn is_pressed(&self, action: Action, window: &Window) -> bool {
++        window.is_key_pressed(self.get(action), minifb::KeyRepeat::No)
++    }
++    pub fn save(&self) -> io::Result <()> {
++        let contents = Action::ALL.iter().map(|action| format!("{}={:?}", action.config_name(), self.get(action))).collect::<Vec<_>>().join("\n");
++        fs::write(KEY_BINDINGS_FILE, contents)
++    }
++}
++
++
++// default key bindings for each action
++impl Default for KeyBindings {}
++
++
+ const ALL_KEYS: &[Keys] = &[
+     Key::Key0,
+     Key::Key1,
+-- 
+2.56.0.windows.4
+
+
+From 75dfd7f200b905f726d820388965a75541f57359 Mon Sep 17 00:00:00 2001
+From: GregarekT <toagent@web.de>
+Date: Tue, 3 Nov 2026 18:31:58 +0100
+Subject: [PATCH 06/13] Forgot ESC and LOCK enemies
+
+---
+ src/game/key_bindings.rs | 38 ++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 36 insertions(+), 2 deletions(-)
+
+diff --git a/src/game/key_bindings.rs b/src/game/key_bindings.rs
+index 066ff15..487dc2d 100644
+--- a/src/game/key_bindings.rs
++++ b/src/game/key_bindings.rs
+@@ -24,10 +24,12 @@ pub enum Action {
+     FireBullet,
+     FireArrow,
+     ToggleGodmode,
++    LockEnemies,
++    ExitGame_or_Menu,
+ }
+ 
+ impl Action {
+-    pub const ALL: [self; 17] = [
++    pub const ALL: [self; 19]= [
+         Self::MoveForward,
+         Self::MoveBackward,
+         Self::MoveLeft,
+@@ -45,6 +47,8 @@ impl Action {
+         Self::FireBullet,
+         Self::FireArrow,
+         Self::ToggleGodmode,
++        Self::LockEnemies,
++        Self::ExitGame_or_Menu,
+     ];
+     pub fn label(self) -> &'static str {
+         match self {
+@@ -65,6 +69,8 @@ impl Action {
+             Self::FireBullet => "Fire Bullet",
+             Self::FireArrow => "Fire Arrow",
+             Self::ToggleGodmode => "Toggle Godmode",
++            Self::LockEnemies => "Lock Enemies",
++            Self::ExitGame_or_Menu => "Exit Game or Menu",
+         }
+     }
+     fn config_name(self) -> &'static str {
+@@ -86,6 +92,8 @@ impl Action {
+             Self::FireBullet => "fire_bullet",
+             Self::FireArrow => "fire_arrow",
+             Self::ToggleGodmode => "toggle_godmode",
++            Self::LockEnemies => "lock_enemies",
++            Self::ExitGame_or_Menu => "exit_game_or_menu",
+         }
+     }
+     fn from_config_name(name:&str) -> Option<Self> {
+@@ -148,7 +156,33 @@ impl KeyBindings {
+ 
+ 
+ // default key bindings for each action
+-impl Default for KeyBindings {}
++impl Default for KeyBindings {
++    fn default() -> Self {
++        Self {
++            keys: [
++                Key::W,
++                Key::S,
++                Key::A,
++                Key::D,
++                Key::Left,
++                Key::Right,
++                Key::Up,
++                Key::Down,
++                Key::Space,
++                Key::R,
++                Key::LeftShift,
++                Key::C,
++                Key::F,
++                Key::E,
++                Key::RightCtrl,
++                Key::RightShift,
++                Key::G,
++                Key::L,
++                Key::Escape,
++            ],
++        }
++    }
++}
+ 
+ 
+ const ALL_KEYS: &[Keys] = &[
+-- 
+2.56.0.windows.4
+
+
+From cc8d9eec95ebe81eeabc2eda353e19d19ca0e628 Mon Sep 17 00:00:00 2001
+From: GregarekT <toagent@web.de>
+Date: Tue, 3 Nov 2026 21:28:51 +0100
+Subject: [PATCH 07/13] Works with issues
+
+Exit  cant be changed yet
+---
+ key_bindings.txt         | 19 ++++++++++++
+ src/game/entities.rs     |  8 +++--
+ src/game/gamestate.rs    |  7 +++--
+ src/game/key_bindings.rs | 34 +++++++++++----------
+ src/game/mod.rs          |  1 +
+ src/game/player.rs       | 64 +++++++++++++++++++++-------------------
+ src/main.rs              | 15 ++++------
+ src/menu/menu_handler.rs | 50 +++++++++++++++++++++++++++++--
+ 8 files changed, 132 insertions(+), 66 deletions(-)
+ create mode 100644 key_bindings.txt
+
+diff --git a/key_bindings.txt b/key_bindings.txt
+new file mode 100644
+index 0000000..14dab45
+--- /dev/null
++++ b/key_bindings.txt
+@@ -0,0 +1,19 @@
++move_forward=W
++move_backward=S
++move_left=A
++move_right=D
++turn_left=Left
++turn_right=Right
++aim_up=Up
++aim_down=Down
++jump=Space
++rocket_jump=R
++sprint=LeftShift
++crouch=C
++interact=F
++toggle_aim=E
++fire_bullet=RightCtrl
++fire_arrow=RightShift
++toggle_godmode=G
++lock_enemies=M
++exit_game_or_menu=Escape
+\ No newline at end of file
+diff --git a/src/game/entities.rs b/src/game/entities.rs
+index 9c4230a..a56f658 100644
+--- a/src/game/entities.rs
++++ b/src/game/entities.rs
+@@ -1,4 +1,4 @@
+-use minifb::{Key, Window};
++use minifb::Window;
+ 
+ use crate::audio::audio_handler::Audio;
+ use crate::game::entities::EntityType::*;
+@@ -9,11 +9,12 @@ use crate::game::entity_behaviour::{
+     summoner_enemy_behaviour, weak_enemy_behaviour,
+ };
+ 
++
+ use crate::game::map::{Map, Point};
+ use crate::game::movement::Mover;
+ use crate::render::RendererData;
+ use crate::render::sprites::Sprite;
+-
++use crate::game::key_bindings::{Action,KeyBindings};
+ use std::fmt;
+ 
+ pub const ENTITY_DEFAULT_VIEW_HEIGHT: f64 = 15.0;
+@@ -198,10 +199,11 @@ impl Entity {
+         player_mover: &Mover,
+         renderer_data: &RendererData,
+         audio: &mut Audio,
++        key_bindings: &KeyBindings,
+     ) -> Vec<EntityEvent> {
+         //collect all Spawn events for gamestate
+         let mut events: Vec<EntityEvent> = Vec::new();
+-        if window.is_key_pressed(Key::L, minifb::KeyRepeat::No) {
++        if key_bindings.is_pressed(window, Action::LockEnemies) {
+             self.movement_locked = !self.movement_locked;
+         }
+ 
+diff --git a/src/game/gamestate.rs b/src/game/gamestate.rs
+index 5ae82e9..182311c 100644
+--- a/src/game/gamestate.rs
++++ b/src/game/gamestate.rs
+@@ -6,6 +6,7 @@ use crate::{
+         entities::{Entity, EntityEvent::*},
+         entity_behaviour::death_behaviour,
+         interactables::Interactable,
++        key_bindings::KeyBindings,
+         map_grid::MapGrid,
+     },
+     parser::map_parser::parse_map,
+@@ -81,7 +82,7 @@ impl Game {
+         }
+     }
+ 
+-    pub fn update(&mut self, window: &Window, renderer_data: &RendererData, audio: &mut Audio) {
++    pub fn update(&mut self, window: &Window, renderer_data: &RendererData, audio: &mut Audio,key_bindings: &KeyBindings) {
+         //update all interactables and add possible spawn events
+         let mut interactables = std::mem::take(&mut self.interactables);
+         let mut interactables_spawns = Vec::new();
+@@ -95,13 +96,13 @@ impl Game {
+ 
+         let mut entity_spawns = Vec::new();
+         //update player
+-        let event = self.player.update(window, &self.map, renderer_data, audio);
++        let event = self.player.update(window, &self.map, renderer_data, audio, key_bindings);
+         //add possible spawn events
+         entity_spawns.extend(event);
+ 
+         //update all entites and add possible spawn events
+         for entity in &mut self.entities {
+-            let event = entity.update(window, &self.map, &self.player.mover, renderer_data, audio);
++            let event = entity.update(window, &self.map, &self.player.mover, renderer_data, audio, key_bindings);
+             entity_spawns.extend(event);
+         }
+ 
+diff --git a/src/game/key_bindings.rs b/src/game/key_bindings.rs
+index 487dc2d..e5d3e48 100644
+--- a/src/game/key_bindings.rs
++++ b/src/game/key_bindings.rs
+@@ -2,10 +2,10 @@ use std::{fs, io};
+ 
+ use minifb::{Key, Window};
+ 
+-const KEY_BINDINGS_FILE: &str = "key_bindings.txt";
++const KEY_BINDINGS_PATH: &str = "key_bindings.txt";
+ 
+ #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+-#[represent(usize)]
++#[repr(usize)]
+ pub enum Action {
+     MoveForward,
+     MoveBackward,
+@@ -25,11 +25,11 @@ pub enum Action {
+     FireArrow,
+     ToggleGodmode,
+     LockEnemies,
+-    ExitGame_or_Menu,
++    ExitGameorMenu,
+ }
+ 
+ impl Action {
+-    pub const ALL: [self; 19]= [
++    pub const ALL: [Self; 19]= [
+         Self::MoveForward,
+         Self::MoveBackward,
+         Self::MoveLeft,
+@@ -48,7 +48,7 @@ impl Action {
+         Self::FireArrow,
+         Self::ToggleGodmode,
+         Self::LockEnemies,
+-        Self::ExitGame_or_Menu,
++        Self::ExitGameorMenu,
+     ];
+     pub fn label(self) -> &'static str {
+         match self {
+@@ -70,7 +70,7 @@ impl Action {
+             Self::FireArrow => "Fire Arrow",
+             Self::ToggleGodmode => "Toggle Godmode",
+             Self::LockEnemies => "Lock Enemies",
+-            Self::ExitGame_or_Menu => "Exit Game or Menu",
++            Self::ExitGameorMenu => "Exit Game or Menu",
+         }
+     }
+     fn config_name(self) -> &'static str {
+@@ -93,11 +93,13 @@ impl Action {
+             Self::FireArrow => "fire_arrow",
+             Self::ToggleGodmode => "toggle_godmode",
+             Self::LockEnemies => "lock_enemies",
+-            Self::ExitGame_or_Menu => "exit_game_or_menu",
++            Self::ExitGameorMenu => "exit_game_or_menu",
+         }
+     }
+-    fn from_config_name(name:&str) -> Option<Self> {
+-        Self::ALL.iter().find(|&&action| action.config_name() == name)
++    fn from_config_name(name: &str) -> Option<Self> {
++        Self::ALL
++            .into_iter()
++            .find(|action| action.config_name() == name)
+     }
+ }
+ 
+@@ -110,7 +112,7 @@ pub struct KeyBindings {
+ impl KeyBindings {
+     pub fn load() -> Self {
+         let mut bindings = Self::default();
+-        match fs::read_to_string(KEY_BINDINGS_FILE) {
++        match fs::read_to_string(KEY_BINDINGS_PATH) {
+             Ok (contents) => {
+                 for (line_number, line) in contents.lines().enumerate() {
+                     let Some((action_name, key_name)) = line.split_once('=') else {
+@@ -121,7 +123,7 @@ impl KeyBindings {
+                         continue;
+                     };
+                     let action = Action::from_config_name(action_name);
+-                    let key = ALL_KEYS.iter().copied.find(|key| format!("{key:?}") == key_name);
++                    let key = ALL_KEYS.iter().copied().find(|key| format!("{key:?}") == key_name);
+                     match (action, key) {
+                         (Some(action), Some(key)) => bindings.set (action, key), _ => eprintln!(
+                             "Invalid action or key in key bindings file at line {KEY_BINDINGS_PATH}: {}",
+@@ -142,15 +144,15 @@ impl KeyBindings {
+     pub fn set (&mut self, action: Action, key: Key) {
+         self.keys[action as usize] = key;
+     }
+-    pub fn is_down(&self, action: Action, window: &Window) -> bool {
++    pub fn is_down(&self, window: &Window, action: Action) -> bool {
+         window.is_key_down(self.get(action))
+     }
+-    pub fn is_pressed(&self, action: Action, window: &Window) -> bool {
++    pub fn is_pressed(&self, window: &Window, action: Action) -> bool {
+         window.is_key_pressed(self.get(action), minifb::KeyRepeat::No)
+     }
+     pub fn save(&self) -> io::Result <()> {
+-        let contents = Action::ALL.iter().map(|action| format!("{}={:?}", action.config_name(), self.get(action))).collect::<Vec<_>>().join("\n");
+-        fs::write(KEY_BINDINGS_FILE, contents)
++        let contents = Action::ALL.iter().map(|action| format!("{}={:?}", action.config_name(), self.get(*action))).collect::<Vec<_>>().join("\n");
++        fs::write(KEY_BINDINGS_PATH, contents)
+     }
+ }
+ 
+@@ -185,7 +187,7 @@ impl Default for KeyBindings {
+ }
+ 
+ 
+-const ALL_KEYS: &[Keys] = &[
++const ALL_KEYS: &[Key] = &[
+     Key::Key0,
+     Key::Key1,
+     Key::Key2,
+diff --git a/src/game/mod.rs b/src/game/mod.rs
+index d05d755..5098da2 100644
+--- a/src/game/mod.rs
++++ b/src/game/mod.rs
+@@ -4,6 +4,7 @@ pub mod entity_behaviour;
+ pub mod gamestate;
+ pub mod generate_entities;
+ pub mod interactables;
++pub mod key_bindings;
+ pub mod map;
+ pub mod map_grid;
+ pub mod movement;
+diff --git a/src/game/player.rs b/src/game/player.rs
+index 7957f56..2e16bb7 100644
+--- a/src/game/player.rs
++++ b/src/game/player.rs
+@@ -13,13 +13,14 @@ use crate::{
+         movement::find_blocks_were_currently_in,
+     },
+ };
++use crate::game::key_bindings::{Action,KeyBindings};
+ 
+ use crate::{
+     SCREEN_WIDTH,
+     game::{map::Point, movement::Mover},
+     render::RendererData,
+ };
+-use minifb::{Key, KeyRepeat, MouseButton, MouseMode, Window};
++use minifb::{Key, MouseButton, MouseMode, Window};
+ use std::f64::consts::PI;
+ 
+ const ROTATION_SPEED_MOUSE: f64 = 2.0;
+@@ -171,23 +172,24 @@ impl Player {
+         map: &Map,
+         renderer_data: &RendererData,
+         audio: &mut Audio,
++        key_bindings: &KeyBindings,
+     ) -> Vec<EntityEvent> {
+         let mut events: Vec<EntityEvent> = Vec::new();
+         //reseting keyinput idfk how to do it an other way
+         self.interacting = false;
+-        if window.is_key_pressed(Key::F, KeyRepeat::No) {
++        if key_bindings.is_pressed(window, Action::Interact) {
+             self.interacting = true;
+         }
+ 
+         //swap between aim_mode and not, during aim mode sense is lowered
+-        if window.is_key_pressed(Key::E, KeyRepeat::No) {
++        if key_bindings.is_pressed(window, Action::ToggleAim) {
+             match self.aim_mode {
+                 true => self.aim_mode = false,
+                 false => self.aim_mode = true,
+             }
+         }
+ 
+-        if (window.is_key_pressed(Key::RightCtrl, KeyRepeat::No)
++        if (key_bindings.is_pressed(window, Action::FireBullet) 
+             || (window.get_mouse_down(MouseButton::Left) && MOUSE_ENABLED))
+             && self.bullet_cooldown == 0
+         {
+@@ -211,7 +213,7 @@ impl Player {
+         }
+ 
+         //shooting, generates arrow entity and gives it as a spawn event to gamestate
+-        if (window.is_key_pressed(Key::RightShift, KeyRepeat::No)
++        if (key_bindings.is_pressed(window, Action::FireArrow)
+             || (window.get_mouse_down(MouseButton::Right) && MOUSE_ENABLED))
+             && self.arrow_cooldown == 0
+         {
+@@ -251,7 +253,7 @@ impl Player {
+             self.update_dir();
+         }
+ 
+-        if window.is_key_down(Key::Left) {
++        if key_bindings.is_down(window, Action::TurnLeft) {
+             //during slide heavily restricted rotation
+             let rotation_factor = match self.is_sliding || self.is_jumping {
+                 true => match self.using_rocketlauncher {
+@@ -269,7 +271,7 @@ impl Player {
+             self.update_dir();
+         }
+ 
+-        if window.is_key_down(Key::Right) {
++        if key_bindings.is_down(window, Action::TurnRight) {
+             //during slide heavily restricted rotation
+             let rotation_factor = match self.is_sliding || self.is_jumping {
+                 true => match self.using_rocketlauncher {
+@@ -288,13 +290,13 @@ impl Player {
+ 
+         let mut step_successful: bool = false;
+ 
+-        if (window.is_key_down(Key::W)
++        if (key_bindings.is_down(window, Action::MoveForward)
+             && ((!self.is_sliding && !self.is_jumping) || self.last_input == W))
+             || (self.is_jumping && (self.last_input == W))
+         {
+             step_successful = self.mover.step(self.move_speed, 0.0, map, self.godmode);
+         }
+-        if (window.is_key_down(Key::A)
++        if (key_bindings.is_down(window, Action::MoveLeft)
+             && ((!self.is_sliding && !self.is_jumping) || self.last_input == A))
+             || (self.is_jumping && (self.last_input == A))
+         {
+@@ -302,7 +304,7 @@ impl Player {
+                 .mover
+                 .step(self.move_speed, -PI / 2.0, map, self.godmode);
+         }
+-        if (window.is_key_down(Key::D)
++        if (key_bindings.is_down(window, Action::MoveRight)
+             && ((!self.is_sliding && !self.is_jumping) || self.last_input == D))
+             || (self.is_jumping && (self.last_input == D))
+         {
+@@ -311,7 +313,7 @@ impl Player {
+                 .step(self.move_speed, PI / 2.0, map, self.godmode);
+         }
+ 
+-        if (window.is_key_down(Key::S)
++        if (key_bindings.is_down(window, Action::MoveBackward)
+             && ((!self.is_sliding && !self.is_jumping) || self.last_input == S))
+             || (self.is_jumping && (self.last_input == S))
+         {
+@@ -328,16 +330,16 @@ impl Player {
+         }
+ 
+         //god mode controls (not relevant for user)
+-        if window.is_key_down(Key::Space) && self.godmode {
++        if key_bindings.is_down(window, Action::Sprint) && self.godmode {
+             self.mover.foot_level += FLY_UP_DOWN_SPEED;
+         }
+ 
+-        if window.is_key_down(Key::LeftShift) && self.godmode {
++        if !key_bindings.is_down(window, Action::Sprint) && !self.is_jumping && !self.is_sliding {
+             self.mover.foot_level -= FLY_UP_DOWN_SPEED;
+         }
+ 
+         //slowdown movespeed if not sprinting and sliding anymore
+-        if !window.is_key_down(Key::LeftShift) && !self.is_jumping && !self.is_sliding {
++        if key_bindings.is_down(window, Action::Sprint) && !self.godmode {
+             self.move_speed = MOVE_SPEED;
+         }
+ 
+@@ -356,11 +358,11 @@ impl Player {
+         }
+ 
+         //slide has cooldown
+-        if (self.slide_cooldown > 0) && !window.is_key_down(Key::C) {
++        if (self.slide_cooldown > 0) && !key_bindings.is_down(window, Action::Crouch){
+             self.slide_cooldown -= 1;
+         }
+         //init slide gives speed boost
+-        if window.is_key_down(Key::C)
++        if key_bindings.is_down(window, Action::Crouch)
+             && !self.is_sliding
+             && !self.godmode
+             && self.slide_cooldown == 0
+@@ -369,7 +371,7 @@ impl Player {
+             audio.play_sfx("slide", 1.0);
+             self.move_speed += 5.0;
+             self.is_sliding = true;
+-            self.save_input(window);
++            self.save_input(window,key_bindings);
+         }
+ 
+         //during slide speed decreases
+@@ -379,7 +381,7 @@ impl Player {
+ 
+         //ending slide (either cause not pressed or slowed down)
+         #[allow(clippy::nonminimal_bool)]
+-        if (!window.is_key_down(Key::C) && self.is_sliding)
++        if (!key_bindings.is_down(window, Action::Crouch)&& self.is_sliding)
+             || ((self.move_speed <= SPRINT_SPEED) && self.is_sliding)
+         {
+             self.is_sliding = false;
+@@ -404,12 +406,12 @@ impl Player {
+         };
+ 
+         //jumping init
+-        if (window.is_key_pressed(Key::Space, KeyRepeat::No)
++        if (key_bindings.is_pressed(window, Action::Jump)
+             && ((!self.is_jumping
+                 && (self.mover.foot_level - self.mover.floor_level).abs()
+                     < DISTANCE_TO_FLOOR_WHILE_ALLOWED_JUMPING)
+                 || self.jumping_allowed))
+-            || window.is_key_pressed(Key::R, KeyRepeat::No)
++            || key_bindings.is_pressed(window, Action::RocketJump)
+         {
+             self.gravity = GRAVITY_CONST;
+             self.is_jumping = true;
+@@ -420,7 +422,7 @@ impl Player {
+                 self.move_speed += 3.0;
+             }
+             //normal jump init
+-            if window.is_key_pressed(Key::Space, KeyRepeat::No) {
++            if key_bindings.is_pressed(window, Action::Jump) {
+                 audio.play_sfx("jump", 1.0);
+ 
+                 self.move_speed += self.move_speed * JUMP_SPEED_BOOST_MULTIPLICATOR;
+@@ -430,7 +432,7 @@ impl Player {
+             }
+ 
+             //rocketlauncher
+-            if window.is_key_pressed(Key::R, KeyRepeat::No) && (self.rocketlauncher_cooldown == 0) {
++            if key_bindings.is_pressed(window, Action::RocketJump) && (self.rocketlauncher_cooldown == 0) {
+                 audio.play_sfx("rocketlauncher", 1.0);
+ 
+                 self.using_rocketlauncher = true;
+@@ -442,7 +444,7 @@ impl Player {
+                 self.rocketlauncher_cooldown = ROCKETLAUNCHER_COOLDOWN_TIME;
+             }
+ 
+-            self.save_input(window);
++             self.save_input(window, key_bindings);
+         }
+ 
+         //Rocketlauncher cooldwon
+@@ -470,7 +472,7 @@ impl Player {
+             }
+         }
+ 
+-        if window.is_key_pressed(Key::G, KeyRepeat::No) {
++        if key_bindings.is_pressed(window, Action::ToggleGodmode) {
+             self.godmode = !self.godmode;
+         }
+ 
+@@ -520,7 +522,7 @@ impl Player {
+         }
+ 
+         //aim (inverted controls because pixel grid is inverted too)
+-        if window.is_key_down(Key::Up) {
++        if key_bindings.is_down(window, Action::AimUp) {
+             match self.aim_mode {
+                 false => {
+                     self.vertcal_aim = (self.vertcal_aim - VERTICAL_AIM_SPEED).clamp(-1.0, 1.0)
+@@ -532,7 +534,7 @@ impl Player {
+             }
+         }
+ 
+-        if window.is_key_down(Key::Down) {
++        if key_bindings.is_down(window, Action::AimDown) {
+             match self.aim_mode {
+                 false => {
+                     self.vertcal_aim = (self.vertcal_aim + VERTICAL_AIM_SPEED).clamp(-1.0, 1.0)
+@@ -547,14 +549,14 @@ impl Player {
+         events
+     }
+ 
+-    fn save_input(&mut self, window: &Window) {
+-        if window.is_key_down(Key::D) {
++   fn save_input(&mut self, window: &Window, key_bindings: &KeyBindings) {
++        if key_bindings.is_down(window, Action::MoveRight) {
+             self.last_input = D;
+-        } else if window.is_key_down(Key::A) {
++        } else if key_bindings.is_down(window, Action::MoveLeft) {
+             self.last_input = A;
+-        } else if window.is_key_down(Key::S) {
++        } else if key_bindings.is_down(window, Action::MoveBackward) {
+             self.last_input = S;
+-        } else if window.is_key_down(Key::W) {
++        } else if key_bindings.is_down(window, Action::MoveForward) {
+             self.last_input = W;
+         } else {
+             self.last_input = No
+diff --git a/src/main.rs b/src/main.rs
+index 025c7c1..a9b3ed6 100644
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -89,7 +89,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
+                 } else if game.player.hp <= 0.0 {
+                     app_state = AppState::GameOver;
+                 } else {
+-                    game.update(&window, &renderer_data, &mut audio);
++                    game.update(&window, &renderer_data, &mut audio, &menu.key_bindings);
+                     render::draw_screen(&mut buffer, &renderer_data, &game);
+ 
+                     frame_count += 1;
+@@ -134,15 +134,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
+             AppState::KeyBindings => {
+                 window.set_cursor_visibility(true);
+ 
+-                if escape_clicked {
+-                    app_state = AppState::StartScreen;
+-                } else {
+-                    app_state = menu.update_and_draw_key_bindings(
+-                        &mut window, 
+-                        &mut buffer,
+-                        
+-                    );
+-                }
++                app_state = menu.update_and_draw_key_bindings(
++                    &mut window,
++                    &mut buffer,
++                );
+             }
+         }
+ 
+diff --git a/src/menu/menu_handler.rs b/src/menu/menu_handler.rs
+index fabc1b6..978e4af 100644
+--- a/src/menu/menu_handler.rs
++++ b/src/menu/menu_handler.rs
+@@ -6,6 +6,7 @@
+ 
+ use font8x8::{BASIC_FONTS, UnicodeFonts};
+ use minifb::{Key, KeyRepeat, MouseButton, MouseMode, Window};
++use crate::game::key_bindings::{Action, KeyBindings};
+ use std::fs;
+ 
+ use crate::audio::audio_handler::Audio;
+@@ -48,12 +49,16 @@ struct ButtonDef {
+ /// we only need to manually track the mouse state for edge detection (clicks).
+ pub struct Menu {
+     was_mouse_down: bool,
++    capture_action: Option<Action>,
++    pub key_bindings: KeyBindings,
+ }
+ 
+ impl Menu {
+     pub fn new() -> Self {
+         Self {
+             was_mouse_down: false,
++            capture_action: None,
++            key_bindings: KeyBindings::load(),
+         }
+     }
+ 
+@@ -169,8 +174,7 @@ impl Menu {
+             return AppState::Quit;
+         }
+         if self.draw_flat_button(buffer, &btn_key_bindings, mx, my) && clicked || click4 {
+-            return AppState::KeyBindings;
+-            //Open the key bindings menu or perform related action (this is a placeholder for future implementation) via Config file 
++            return AppState::KeyBindings; 
+         }
+ 
+         // Keep looping in the menu until an action changes the state
+@@ -318,6 +322,19 @@ impl Menu {
+         buffer.fill(COL_BG_MAIN);
+ 
+         let (mx, my, clicked) = self.get_mouse_state(window);
++        if let Some(action) = self.capture_action {
++            if let Some(key) = window.get_keys_pressed(KeyRepeat::No).into_iter().find(|key| *key != Key::Unknown)
++            {
++                self.key_bindings.set(action, key);
++                if let Err(error) = self.key_bindings.save() {
++                    eprintln!("Failed to save key bindings: {error}");
++                }
++                self.capture_action = None;
++
++            }
++        } else if window.is_key_pressed(Key::Escape, KeyRepeat::No) {
++                return AppState::StartScreen;
++        }
+        
+         
+         Self::draw_text_centered(
+@@ -330,7 +347,34 @@ impl Menu {
+             COL_TITLE_RED,
+         );
+ 
+-        
++        Self::draw_text_centered(
++            buffer,
++            SCREEN_WIDTH,
++            SCREEN_HEIGHT,
++            "SELECT AN ACTION, THEN PRESS A KEY",
++            52,
++            1,
++            COL_TEXT_WHITE,
++        );
++        for (index, action) in Action::ALL.into_iter().enumerate() {
++            let is_capturing = self.capture_action == Some(action);
++            let binding_text = if is_capturing {
++                format!("{}: PRESS A KEY", action.label())
++            } else {
++                format!("{}: {:?}", action.label(), self.key_bindings.get(action))
++            };
++            let row = ButtonDef {
++                x: 100,
++                y: 72 + index * 18,
++                w: 600,
++                h: 18,
++                text: binding_text,
++            };
++
++            if self.draw_flat_button(buffer, &row, mx, my) && clicked {
++                self.capture_action = Some(action);
++            }
++        }
+         
+         let btn_back = ButtonDef {
+             x: 230,
+-- 
+2.56.0.windows.4
+
+
+From 0fe87ad0fba472b83f9bf6c660e7d5ed05dff8cf Mon Sep 17 00:00:00 2001
+From: GregarekT <toagent@web.de>
+Date: Tue, 3 Nov 2026 21:40:59 +0100
+Subject: [PATCH 08/13] After Test Sprint doesnt work
+
+---
+ key_bindings.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/key_bindings.txt b/key_bindings.txt
+index 14dab45..e6dab36 100644
+--- a/key_bindings.txt
++++ b/key_bindings.txt
+@@ -15,5 +15,5 @@ toggle_aim=E
+ fire_bullet=RightCtrl
+ fire_arrow=RightShift
+ toggle_godmode=G
+-lock_enemies=M
++lock_enemies=L
+ exit_game_or_menu=Escape
+\ No newline at end of file
+-- 
+2.56.0.windows.4
+
+
+From dc2871d255dfd71abff49b58cdfd10d4b7215fe3 Mon Sep 17 00:00:00 2001
+From: GregarekT <toagent@web.de>
+Date: Tue, 3 Nov 2026 21:52:34 +0100
+Subject: [PATCH 09/13] Sprint works as intended
+
+---
+ key_bindings.txt   | 2 +-
+ src/game/player.rs | 6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/key_bindings.txt b/key_bindings.txt
+index e6dab36..c9e3c52 100644
+--- a/key_bindings.txt
++++ b/key_bindings.txt
+@@ -8,7 +8,7 @@ aim_up=Up
+ aim_down=Down
+ jump=Space
+ rocket_jump=R
+-sprint=LeftShift
++sprint=Q
+ crouch=C
+ interact=F
+ toggle_aim=E
+diff --git a/src/game/player.rs b/src/game/player.rs
+index 2e16bb7..42a4cc5 100644
+--- a/src/game/player.rs
++++ b/src/game/player.rs
+@@ -20,7 +20,7 @@ use crate::{
+     game::{map::Point, movement::Mover},
+     render::RendererData,
+ };
+-use minifb::{Key, MouseButton, MouseMode, Window};
++use minifb::{MouseButton, MouseMode, Window};
+ use std::f64::consts::PI;
+ 
+ const ROTATION_SPEED_MOUSE: f64 = 2.0;
+@@ -339,12 +339,12 @@ impl Player {
+         }
+ 
+         //slowdown movespeed if not sprinting and sliding anymore
+-        if key_bindings.is_down(window, Action::Sprint) && !self.godmode {
++        if !key_bindings.is_down(window, Action::Sprint) && !self.godmode {
+             self.move_speed = MOVE_SPEED;
+         }
+ 
+         //implementing Sprint that gradually increases movement speed
+-        if window.is_key_down(Key::LeftShift) && !self.godmode {
++        if key_bindings.is_down(window, Action::Sprint) && !self.godmode {
+             if self.move_speed < SPRINT_SPEED - 0.1 {
+                 self.move_speed += 0.1;
+             }
+-- 
+2.56.0.windows.4
+
+
+From bf1b1e48db76092373d2eaa4c085f3c3f99027bd Mon Sep 17 00:00:00 2001
+From: GregarekT <toagent@web.de>
+Date: Tue, 3 Nov 2026 22:12:24 +0100
+Subject: [PATCH 10/13] Esc works now
+
+---
+ src/main.rs              | 13 +++++++------
+ src/menu/menu_handler.rs |  2 +-
+ 2 files changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/src/main.rs b/src/main.rs
+index a9b3ed6..745a013 100644
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -7,9 +7,10 @@ mod parser;
+ mod render;
+ 
+ use crate::audio::audio_handler::Audio;
++use crate::game::key_bindings::Action;
+ use crate::menu::menu_handler::{AppState, Menu};
+ use crate::render::{RendererData, render_init};
+-use minifb::{Key, KeyRepeat, Window, WindowOptions};
++use minifb::{Window, WindowOptions};
+ use std::f64::consts::PI;
+ use std::time::Instant;
+ 
+@@ -62,13 +63,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
+     let mut app_state = AppState::StartScreen;
+ 
+     while window.is_open() {
+-        let escape_clicked = window.is_key_pressed(Key::Escape, KeyRepeat::No);
++        let exit_action_pressed = menu.key_bindings.is_pressed(&window, Action::ExitGameorMenu);
+ 
+         match app_state {
+             AppState::StartScreen => {
+                 window.set_cursor_visibility(true);
+ 
+-                if escape_clicked {
++                if exit_action_pressed {
+                     break;
+                 } else {
+                     app_state = menu.update_and_draw_start_menu(
+@@ -84,7 +85,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
+             AppState::Playing => {
+                 window.set_cursor_visibility(false);
+ 
+-                if escape_clicked {
++                if exit_action_pressed{
+                     app_state = AppState::GamePaused;
+                 } else if game.player.hp <= 0.0 {
+                     app_state = AppState::GameOver;
+@@ -106,7 +107,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
+             AppState::GamePaused => {
+                 window.set_cursor_visibility(true);
+ 
+-                if escape_clicked {
++                if exit_action_pressed{
+                     app_state = AppState::StartScreen;
+                 } else {
+                     app_state = menu.update_and_draw_game_paused(
+@@ -121,7 +122,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
+             AppState::GameOver => {
+                 window.set_cursor_visibility(true);
+ 
+-                if escape_clicked {
++                if exit_action_pressed{
+                     app_state = AppState::StartScreen;
+                 } else {
+                     app_state = menu.update_and_draw_game_over(&mut window, &mut buffer, &mut game);
+diff --git a/src/menu/menu_handler.rs b/src/menu/menu_handler.rs
+index 978e4af..ee3d714 100644
+--- a/src/menu/menu_handler.rs
++++ b/src/menu/menu_handler.rs
+@@ -332,7 +332,7 @@ impl Menu {
+                 self.capture_action = None;
+ 
+             }
+-        } else if window.is_key_pressed(Key::Escape, KeyRepeat::No) {
++        } else if self.key_bindings.is_pressed(window, Action::ExitGameorMenu) {
+                 return AppState::StartScreen;
+         }
+        
+-- 
+2.56.0.windows.4
+
+
+From df6b0e950504d396b9c7396237db5c4c725d95e1 Mon Sep 17 00:00:00 2001
+From: GregarekT <toagent@web.de>
+Date: Tue, 3 Nov 2026 22:21:19 +0100
+Subject: [PATCH 11/13] Fixed menu so that everything can be read
+
+---
+ key_bindings.txt         |  2 +-
+ src/menu/menu_handler.rs | 10 +++++-----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/key_bindings.txt b/key_bindings.txt
+index c9e3c52..e6dab36 100644
+--- a/key_bindings.txt
++++ b/key_bindings.txt
+@@ -8,7 +8,7 @@ aim_up=Up
+ aim_down=Down
+ jump=Space
+ rocket_jump=R
+-sprint=Q
++sprint=LeftShift
+ crouch=C
+ interact=F
+ toggle_aim=E
+diff --git a/src/menu/menu_handler.rs b/src/menu/menu_handler.rs
+index ee3d714..43ad201 100644
+--- a/src/menu/menu_handler.rs
++++ b/src/menu/menu_handler.rs
+@@ -342,8 +342,8 @@ impl Menu {
+             SCREEN_WIDTH,
+             SCREEN_HEIGHT,
+             "KEY BINDINGS",
+-            50,
+-            6,
++            8,
++            4,
+             COL_TITLE_RED,
+         );
+ 
+@@ -365,7 +365,7 @@ impl Menu {
+             };
+             let row = ButtonDef {
+                 x: 100,
+-                y: 72 + index * 18,
++                y: 72 + index * 16,
+                 w: 600,
+                 h: 18,
+                 text: binding_text,
+@@ -378,9 +378,9 @@ impl Menu {
+         
+         let btn_back = ButtonDef {
+             x: 230,
+-            y: 380,
++            y: 390,
+             w: 340,
+-            h: 50,
++            h: 42,
+             text: "[ESC] BACK TO MENU".to_string(),
+         };
+ 
+-- 
+2.56.0.windows.4
+
+
+From 81281767e11d1a2e1af3908c1ad9e2e34d1050fc Mon Sep 17 00:00:00 2001
+From: GregarekT <toagent@web.de>
+Date: Tue, 3 Nov 2026 23:30:38 +0100
+Subject: [PATCH 12/13] Fixed crouch and Jump
+
+---
+ key_bindings.txt   | 19 -------------------
+ src/game/player.rs | 26 ++++++++++++++------------
+ 2 files changed, 14 insertions(+), 31 deletions(-)
+ delete mode 100644 key_bindings.txt
+
+diff --git a/key_bindings.txt b/key_bindings.txt
+deleted file mode 100644
+index e6dab36..0000000
+--- a/key_bindings.txt
++++ /dev/null
+@@ -1,19 +0,0 @@
+-move_forward=W
+-move_backward=S
+-move_left=A
+-move_right=D
+-turn_left=Left
+-turn_right=Right
+-aim_up=Up
+-aim_down=Down
+-jump=Space
+-rocket_jump=R
+-sprint=LeftShift
+-crouch=C
+-interact=F
+-toggle_aim=E
+-fire_bullet=RightCtrl
+-fire_arrow=RightShift
+-toggle_godmode=G
+-lock_enemies=L
+-exit_game_or_menu=Escape
+\ No newline at end of file
+diff --git a/src/game/player.rs b/src/game/player.rs
+index 42a4cc5..ff94e99 100644
+--- a/src/game/player.rs
++++ b/src/game/player.rs
+@@ -334,12 +334,12 @@ impl Player {
+             self.mover.foot_level += FLY_UP_DOWN_SPEED;
+         }
+ 
+-        if !key_bindings.is_down(window, Action::Sprint) && !self.is_jumping && !self.is_sliding {
++        if !key_bindings.is_down(window, Action::Sprint) && self.godmode && !self.is_jumping && !self.is_sliding {
+             self.mover.foot_level -= FLY_UP_DOWN_SPEED;
+         }
+ 
+         //slowdown movespeed if not sprinting and sliding anymore
+-        if !key_bindings.is_down(window, Action::Sprint) && !self.godmode {
++        if !key_bindings.is_down(window, Action::Sprint) && !self.godmode && !self.is_sliding {
+             self.move_speed = MOVE_SPEED;
+         }
+ 
+@@ -376,14 +376,11 @@ impl Player {
+ 
+         //during slide speed decreases
+         if self.is_sliding {
+-            self.move_speed -= 0.2;
++            self.move_speed = (self.move_speed - 0.2).max(MOVE_SPEED);
+         }
+ 
+-        //ending slide (either cause not pressed or slowed down)
+-        #[allow(clippy::nonminimal_bool)]
+-        if (!key_bindings.is_down(window, Action::Crouch)&& self.is_sliding)
+-            || ((self.move_speed <= SPRINT_SPEED) && self.is_sliding)
+-        {
++        //end crouching when the key is released
++        if !key_bindings.is_down(window, Action::Crouch) && self.is_sliding {
+             self.is_sliding = false;
+             self.last_input = No;
+             self.slide_cooldown = SLIDE_COOLDOWN_TIME;
+@@ -405,13 +402,16 @@ impl Player {
+             self.jumping_allowed_timer = 0
+         };
+ 
++        let jump_pressed = key_bindings.is_pressed(window, Action::Jump);
++        let rocket_jump_pressed = key_bindings.is_pressed(window, Action::RocketJump);
++
+         //jumping init
+-        if (key_bindings.is_pressed(window, Action::Jump)
++        if (jump_pressed
+             && ((!self.is_jumping
+                 && (self.mover.foot_level - self.mover.floor_level).abs()
+                     < DISTANCE_TO_FLOOR_WHILE_ALLOWED_JUMPING)
+                 || self.jumping_allowed))
+-            || key_bindings.is_pressed(window, Action::RocketJump)
++            || rocket_jump_pressed
+         {
+             self.gravity = GRAVITY_CONST;
+             self.is_jumping = true;
+@@ -420,9 +420,11 @@ impl Player {
+                 self.mover.foot_level += CROUCH_HEIGHT_DIFF;
+                 self.slide_cooldown = SLIDE_COOLDOWN_TIME;
+                 self.move_speed += 3.0;
++
+             }
++
+             //normal jump init
+-            if key_bindings.is_pressed(window, Action::Jump) {
++            if jump_pressed {
+                 audio.play_sfx("jump", 1.0);
+ 
+                 self.move_speed += self.move_speed * JUMP_SPEED_BOOST_MULTIPLICATOR;
+@@ -432,7 +434,7 @@ impl Player {
+             }
+ 
+             //rocketlauncher
+-            if key_bindings.is_pressed(window, Action::RocketJump) && (self.rocketlauncher_cooldown == 0) {
++            if rocket_jump_pressed && (self.rocketlauncher_cooldown == 0) {
+                 audio.play_sfx("rocketlauncher", 1.0);
+ 
+                 self.using_rocketlauncher = true;
+-- 
+2.56.0.windows.4
+
+
+From adfe7b1d20a2a267267ba3719a1ce5c097d2711c Mon Sep 17 00:00:00 2001
+From: Tobias Gregarek <toagent@web.de>
+Date: Wed, 4 Nov 2026 14:26:24 +0100
+Subject: [PATCH 13/13] =?UTF-8?q?Ticket=20gel=C3=B6st?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ ReadMe.md | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/ReadMe.md b/ReadMe.md
+index 733960e..20e062b 100644
+--- a/ReadMe.md
++++ b/ReadMe.md
+@@ -9,6 +9,7 @@ Game can be started by simply calling cargo run
+ ## Features:
+ 
+ ### Movement/Controls:
++Can be changed in the main menu
+ 
+ -   W/A/S/D: Forwards/Left/Right/Backwards
+     
+-- 
+2.56.0.windows.4
+
